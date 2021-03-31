@@ -33,6 +33,17 @@ jobs:
           tar xvf ideaIC.tar.gz
           cd $GITHUB_WORKSPACE/work/idea-*/bin
 
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
       - name: Inspect project by IntelliJ IDEA
         run: |
           echo $GITHUB_WORKSPACE/work/idea-*/bin/idea.sh inspect $GITHUB_WORKSPACE $GITHUB_WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $GITHUB_WORKSPACE/result -d $GITHUB_WORKSPACE/src
