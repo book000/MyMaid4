@@ -8,10 +8,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup node env 🏗
+      - name: Setup node
         uses: actions/setup-node@v2.1.5
         with:
           node-version: 14
+
+      - name: Set up reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
 
       - name: Set up idea-inspection-support
         run: |
@@ -32,7 +37,7 @@ jobs:
       - name: Result analysis (Push)
         if: ${{ github.event_name == 'push' }}
         run: |
-          npx idea-inspection-support report $GITHUB_WORKSPACE/result | reviewdog -efm="%f (%l): %m" -name="IntelliJ IDEA Inspector" -reporter=github-pr-review
+          npx idea-inspection-support report $GITHUB_WORKSPACE/result
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
