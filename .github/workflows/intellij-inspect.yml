@@ -52,6 +52,7 @@ jobs:
       - name: Result analysis (Push)
         if: ${{ github.event_name == 'push' }}
         run: |
+          cat $GITHUB_WORKSPACE/result/.descriptions.xml
           tree -L 2 $GITHUB_WORKSPACE
           npx idea-inspection-support report $GITHUB_WORKSPACE/result
         env:
