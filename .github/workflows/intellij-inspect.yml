@@ -40,7 +40,7 @@ jobs:
       - name: Result analysis (Push)
         if: ${{ github.event_name == 'push' }}
         run: |
-          ls $GITHUB_WORKSPACE/result
+          ls -la $GITHUB_WORKSPACE/result
           npx idea-inspection-support report $GITHUB_WORKSPACE/result
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
