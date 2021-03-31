@@ -1,0 +1,44 @@
+name: "IntelliJ IDEA Inspect"
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14
+
+      - name: Set up idea-inspection-support
+        run: |
+          npm install altus5/idea-inspection-support --save-dev
+
+      - name: Set up IntelliJ IDEA
+        run: |
+          mkdir $GITHUB_WORKSPACE/work
+          cd $GITHUB_WORKSPACE/work
+          wget https://download.jetbrains.com/idea/ideaIC-2020.3.3.tar.gz -O ideaIC.tar.gz
+          tar xvf ideaIC.tar.gz
+          cd $GITHUB_WORKSPACE/work/idea-*/bin
+
+      - name: Inspect project by IntelliJ IDEA
+        run: |
+          $GITHUB_WORKSPACE/work/idea-*/bin/idea.sh inspect $GITHUB_WORKSPACE $GITHUB_WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $GITHUB_WORKSPACE/result -d $GITHUB_WORKSPACE/src
+
+      - name: Result analysis (Push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          npx idea-inspection-support report $GITHUB_WORKSPACE/result | reviewdog -efm="%f (%l): %m" -name="IntelliJ IDEA Inspector" -reporter=github-pr-review
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Result analysis (Pull Request)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          npx idea-inspection-support report $GITHUB_WORKSPACE/result | reviewdog -efm="%f (%l): %m" -name="IntelliJ IDEA Inspector" -reporter=github-pr-review
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
