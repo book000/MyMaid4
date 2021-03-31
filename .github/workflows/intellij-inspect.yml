@@ -4,64 +4,13 @@ on: [ push, pull_request ]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup node
-        uses: actions/setup-node@v2.1.5
+      - name: Run IntelliJ Inspections
+        uses: book000/intellij-inspections@master
         with:
-          node-version: 14
-
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-
-      - name: Set up reviewdog
-        uses: reviewdog/action-setup@v1
-        with:
-          reviewdog_version: latest
-
-      - name: Set up idea-inspection-support
-        run: |
-          npm install altus5/idea-inspection-support --save-dev
-          wget https://gist.githubusercontent.com/book000/42d6eb4a0b115bade8550009e2809fc6/raw/support.patch -O support.patch
-          cat support.patch
-          patch node_modules/idea-inspection-support/lib/support.js support.patch
-
-      - name: Set up IntelliJ IDEA
-        run: |
-          mkdir $GITHUB_WORKSPACE/work
-          cd $GITHUB_WORKSPACE/work
-          wget -q https://download.jetbrains.com/idea/ideaIC-2020.3.3.tar.gz -O ideaIC.tar.gz
-          tar xvf ideaIC.tar.gz
-          cd $GITHUB_WORKSPACE/work/idea-*/bin
-
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Inspect project by IntelliJ IDEA
-        run: |
-          echo $GITHUB_WORKSPACE/work/idea-*/bin/idea.sh inspect $GITHUB_WORKSPACE $GITHUB_WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $GITHUB_WORKSPACE/result -d $GITHUB_WORKSPACE/src
-          $GITHUB_WORKSPACE/work/idea-*/bin/idea.sh inspect $GITHUB_WORKSPACE $GITHUB_WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $GITHUB_WORKSPACE/result -d $GITHUB_WORKSPACE/src
-
-      - name: Result analysis (Push)
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          npx idea-inspection-support report $GITHUB_WORKSPACE/result
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Result analysis (Pull Request)
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          npx idea-inspection-support report $GITHUB_WORKSPACE/result | reviewdog -efm="%f (%l): %m" -name="IntelliJ IDEA Inspector" -reporter=github-pr-review
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INSPECTIONS_FILE: Project_Default.xml
