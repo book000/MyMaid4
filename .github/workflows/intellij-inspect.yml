@@ -35,6 +35,7 @@ jobs:
 
       - name: Inspect project by IntelliJ IDEA
         run: |
+          tree -L 2 $GITHUB_WORKSPACE
           $GITHUB_WORKSPACE/work/idea-*/bin/idea.sh inspect $GITHUB_WORKSPACE $GITHUB_WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $GITHUB_WORKSPACE/result -d $GITHUB_WORKSPACE/src
 
       - name: Result analysis (Push)
