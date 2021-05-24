@@ -1,0 +1,66 @@
+name: IntelliJ IDEA Inspect
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14
+
+      - name: Set up reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Set up idea-inspection-support
+        run: |
+          npm install altus5/idea-inspection-support --save-dev
+          wget https://gist.githubusercontent.com/book000/42d6eb4a0b115bade8550009e2809fc6/raw/support.patch -O support.patch
+          cat support.patch
+          patch node_modules/idea-inspection-support/lib/support.js support.patch
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Qodana - Code Inspection
+        uses: JetBrains/qodana-action@v2.0-eap
+        with:
+          project-dir: ${{ github.workspace }}/src
+          report-dir: ${{ github.workspace }}/result
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: result
+          path: qodana
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: docs
+
+      - name: Result analysis (Push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          tree -L 2 $GITHUB_WORKSPACE
+          npx idea-inspection-support report $GITHUB_WORKSPACE/result
+
+      - name: Result analysis (Pull Request)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          npx idea-inspection-support report $GITHUB_WORKSPACE/result | reviewdog -efm="%f (%l): %m" -name="IntelliJ IDEA Inspector" -reporter=github-pr-review
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
