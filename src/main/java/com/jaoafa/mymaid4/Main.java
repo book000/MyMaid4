@@ -75,7 +75,10 @@ public final class Main extends JavaPlugin {
     public void onEnable() {
         Main = this;
 
-        test();
+        String a = test();
+        if (a.startsWith("aaa")) {
+            // test
+        }
 
         config = new MyMaidConfig();
         config.init();
