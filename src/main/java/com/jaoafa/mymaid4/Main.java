@@ -75,6 +75,8 @@ public final class Main extends JavaPlugin {
     public void onEnable() {
         Main = this;
 
+        test();
+
         config = new MyMaidConfig();
         config.init();
         if (!isEnabled())
@@ -484,5 +486,9 @@ public final class Main extends JavaPlugin {
 
     public static MyMaidConfig getMyMaidConfig() {
         return config;
+    }
+
+    public String test() {
+        return null;
     }
 }

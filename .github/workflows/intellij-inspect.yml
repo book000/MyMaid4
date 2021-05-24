@@ -37,7 +37,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v1.0-eap
+        uses: JetBrains/qodana-action@v2.0-eap
         with:
           project-dir: ${{ github.workspace }}/src
           results-dir: ${{ github.workspace }}/result
