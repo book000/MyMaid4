@@ -40,17 +40,12 @@ jobs:
         uses: JetBrains/qodana-action@v2.0-eap
         with:
           project-dir: ${{ github.workspace }}/src
-          report-dir: ${{ github.workspace }}/result
+          results-dir: ${{ github.workspace }}/result
 
       - uses: actions/upload-artifact@v2
         with:
           name: result
-          path: qodana
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: report
-          path: docs
+          path: result
 
       - name: Result analysis (Push)
         if: ${{ github.event_name == 'push' }}
