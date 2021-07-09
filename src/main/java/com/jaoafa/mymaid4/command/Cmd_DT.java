@@ -73,7 +73,7 @@ public class Cmd_DT extends MyMaidLibrary implements CommandPremise {
                     .newBuilder("targets"), ArgumentDescription.of("エンティティ対象セレクター"))
                 .argument(StringArgument
                     .<CommandSender>newBuilder("markerName")
-                    .withSuggestionsProvider(this::suggestMarkerTypes), ArgumentDescription.of("マーカー名"))
+                    .withSuggestionsProvider(this::suggestMarkerNames), ArgumentDescription.of("マーカー名"))
                 .handler(this::teleportOtherMarker)
                 .build(),
             builder
@@ -427,6 +427,7 @@ public class Cmd_DT extends MyMaidLibrary implements CommandPremise {
         return markerAPI.getMarkerSets().stream()
             .flatMap(a -> a.getMarkers().stream())
             .collect(Collectors.toList()).stream()
+            .sorted(new MarkerTypeComparator())
             .map(GenericMarker::getLabel)
             .filter(label -> label.startsWith(current))
             .collect(Collectors.toList());
@@ -558,6 +559,29 @@ public class Cmd_DT extends MyMaidLibrary implements CommandPremise {
         ));
         if (MyMaidData.getServerChatChannel() != null) {
             MyMaidData.getServerChatChannel().sendMessage("*[" + DiscordEscape(sender.getName()) + ": " + DiscordEscape(entity.getName()) + " teleported to " + markerName + "]*").queue();
+        }
+    }
+
+    static class MarkerTypeComparator implements Comparator<GenericMarker> {
+        @Override
+        public int compare(GenericMarker marker1, GenericMarker marker2) {
+            System.out.println("compare: " + marker1.getMarkerSet().getMarkerSetLabel() + " / " + marker2.getMarkerSet().getMarkerSetLabel());
+            boolean set1_is_cities = marker1.getMarkerSet().getMarkerSetLabel().equalsIgnoreCase("Cities");
+            boolean set2_is_cities = marker2.getMarkerSet().getMarkerSetLabel().equalsIgnoreCase("Cities");
+            System.out.println(set1_is_cities + " / " + set2_is_cities);
+            if (marker1.getMarkerSet().equals(marker2.getMarkerSet())) {
+                return marker1.getLabel().compareTo(marker2.getLabel());
+            }
+            if (set1_is_cities && !set2_is_cities) {
+                System.out.println("-> -1");
+                return -1;
+            }
+            if (!set1_is_cities && set2_is_cities) {
+                System.out.println("-> 1");
+                return 1;
+            }
+            System.out.println("-> compareTo: " + marker1.getMarkerSet().getMarkerSetLabel().compareTo(marker2.getMarkerSet().getMarkerSetLabel()));
+            return marker1.getMarkerSet().getMarkerSetLabel().compareTo(marker2.getMarkerSet().getMarkerSetLabel());
         }
     }
 }
